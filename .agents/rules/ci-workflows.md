@@ -28,4 +28,4 @@ Standards for maintaining and updating GitHub Actions workflows across the repos
 - **Architecture-Aware Caching**: Include `${{ runner.os }}-${{ runner.arch }}` in cache keys to isolate runner environments.
 - **Explicit Dependency & Binary Setup**: Use `npm ci` (respecting `package.json` `allowScripts` and `.npmrc`), and install Playwright browsers explicitly via `npm run test:setup`.
 - **Artifact Retention**: Configure failure artifact uploads with explicit `retention-days: 7` and `if-no-files-found: ignore`.
-- **Node.js Runtime Invariant**: Use `node-version: "lts/*"` in `actions/setup-node` to track Active LTS and satisfy dependency `engines` ranges enforced by `.npmrc` `engine-strict=true`.
+- **Node.js Runtime Invariant**: Use `node-version: "lts/*"` in `actions/setup-node` to track Active LTS and satisfy root `package.json` and dependency `engines` ranges enforced by `.npmrc` `engine-strict=true`.

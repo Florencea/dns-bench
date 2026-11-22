@@ -38,7 +38,7 @@ Designed for deterministic DNS evaluation across preset and custom resolvers, fe
 
 ### Prerequisites
 
-- **Node.js** - Active LTS runtime satisfying the `engines` ranges declared by project dependencies (enforced by `.npmrc` `engine-strict=true`).
+- **Node.js** - Active LTS runtime satisfying `engines.node` in [package.json](package.json) (`>=22.18.0`) and project dependencies (enforced by `.npmrc` `engine-strict=true`).
 
 ### Setup
 
