@@ -19,5 +19,5 @@ Guidelines for renderer UI components, state management, and styling.
 
 ## 2. Asynchronous IPC Data Flow
 
-- IPC queries and mutations must flow through `@tanstack/react-query` (`useMutation` / `useQuery`) calling typed `window.api`.
+- IPC queries must flow through dedicated custom hooks (e.g. `useDnsQuery`) using native React state (`useState` / `useRef`) with request-sequence stale-response guards, calling typed `window.api`.
 - Never attempt direct Electron or Node.js IPC invocations from renderer components.

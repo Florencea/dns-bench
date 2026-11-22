@@ -1,52 +1,31 @@
 import { Flex, Provider, View, defaultTheme } from "@adobe/react-spectrum";
-import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { getTranslations } from "../shared/locales";
 import type { ModeT } from "../shared/types";
 import { HeaderBar } from "./components/HeaderBar";
 import { QueryForm } from "./components/QueryForm";
 import { ServerGrid } from "./components/ServerGrid";
+import { useDnsQuery } from "./hooks/useDnsQuery";
 import { useLocale } from "./hooks/useLocale";
 
 export const App = () => {
   const [mode, setMode] = useState<ModeT>("dns");
   const [locale, handleLocaleChange] = useLocale();
+  const { ipv4Data, ipv6Data, isLoading, runQuery, reset } = useDnsQuery();
 
-  const ipv4 = useMutation({
-    mutationFn: async (name: string) => {
-      if (window.api !== undefined) {
-        return await window.api.queryIpv4(mode, name);
-      }
-      return [];
-    },
-  });
-
-  const ipv6 = useMutation({
-    mutationFn: async (name: string) => {
-      if (window.api !== undefined) {
-        return await window.api.queryIpv6(mode, name);
-      }
-      return [];
-    },
-  });
-
-  const isLoading = ipv4.isPending || ipv6.isPending;
   const t = getTranslations(locale);
 
   const handleSubmit = async (host: string) => {
-    await ipv4.mutateAsync(host);
-    await ipv6.mutateAsync(host);
+    await runQuery(mode, host);
   };
 
-  const handleReset = async () => {
-    await ipv4.mutateAsync("");
-    await ipv6.mutateAsync("");
+  const handleReset = () => {
+    reset();
   };
 
-  const handleModeChange = async (newMode: ModeT) => {
+  const handleModeChange = (newMode: ModeT) => {
     setMode(newMode);
-    await ipv4.mutateAsync("");
-    await ipv6.mutateAsync("");
+    reset();
   };
 
   return (
@@ -66,9 +45,7 @@ export const App = () => {
           />
           <QueryForm
             mode={mode}
-            onModeChange={(nextMode) => {
-              void handleModeChange(nextMode);
-            }}
+            onModeChange={handleModeChange}
             onSubmit={handleSubmit}
             onReset={handleReset}
             isLoading={isLoading}
@@ -77,8 +54,8 @@ export const App = () => {
           <ServerGrid
             servers={window.api?.servers ?? []}
             mode={mode}
-            ipv4Data={ipv4.data}
-            ipv6Data={ipv6.data}
+            ipv4Data={ipv4Data}
+            ipv6Data={ipv6Data}
             t={t.ui}
           />
         </Flex>

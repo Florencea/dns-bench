@@ -3,7 +3,7 @@
 [![CI](https://github.com/Florencea/electron-dns/actions/workflows/ci.yml/badge.svg)](https://github.com/Florencea/electron-dns/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A DNS and DNS-over-HTTPS (DoH) benchmarking desktop application powered by **Electron**, **Vite 8**, **React 19**, **Adobe React Spectrum**, **Tailwind CSS v4**, and **TanStack Query**.
+A DNS and DNS-over-HTTPS (DoH) benchmarking desktop application powered by **Electron**, **Vite 8**, **React 19**, **Adobe React Spectrum**, and **Tailwind CSS v4**.
 
 Designed for deterministic DNS evaluation across preset and custom resolvers, featuring direct multi-target Vite/Rolldown builds, transparent HMR with automated main-process hot-restart, and zero third-party Electron wrapper meta-frameworks.
 
@@ -22,15 +22,14 @@ Designed for deterministic DNS evaluation across preset and custom resolvers, fe
 
 ## Tech Stack
 
-| Layer                | Technology                                                      |
-| :------------------- | :-------------------------------------------------------------- |
-| **Runtime & Shell**  | Electron (Context Isolation, Safe IPC Bridge)                   |
-| **Frontend UI**      | React 19, Adobe React Spectrum, Tailwind CSS v4                 |
-| **State & Fetching** | TanStack Query                                                  |
-| **Build & Dev**      | Vite 8 (Rolldown), Native Electron Dev Plugin                   |
-| **Testing**          | Vitest 5 (Chromium Browser Mode + Node Backend Tests)           |
-| **Packaging**        | Electron Forge v8 (ASAR, Fuses, DMG, ZIP)                       |
-| **Code Quality**     | TypeScript 6 (strict), ESLint 10, typescript-eslint, Prettier 3 |
+| Layer               | Technology                                                      |
+| :------------------ | :-------------------------------------------------------------- |
+| **Runtime & Shell** | Electron (Context Isolation, Safe IPC Bridge)                   |
+| **Frontend UI**     | React 19, Adobe React Spectrum, Tailwind CSS v4                 |
+| **Build & Dev**     | Vite 8 (Rolldown), Native Electron Dev Plugin                   |
+| **Testing**         | Vitest 5 (Chromium Browser Mode + Node Backend Tests)           |
+| **Packaging**       | Electron Forge v8 (ASAR, Fuses, DMG, ZIP)                       |
+| **Code Quality**    | TypeScript 6 (strict), ESLint 10, typescript-eslint, Prettier 3 |
 
 ---
 

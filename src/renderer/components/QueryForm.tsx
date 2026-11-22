@@ -17,7 +17,7 @@ interface QueryFormProps {
   mode: ModeT;
   onModeChange: (mode: ModeT) => void;
   onSubmit: (host: string) => Promise<void>;
-  onReset: () => Promise<void>;
+  onReset: () => void;
   isLoading: boolean;
   t: TranslationDictionary["ui"];
 }
@@ -47,10 +47,10 @@ export const QueryForm = ({
     await onSubmit(validation.data);
   };
 
-  const handleReset = async () => {
+  const handleReset = () => {
     setDomainValue("");
     setValidationError(null);
-    await onReset();
+    onReset();
   };
 
   return (
@@ -67,9 +67,7 @@ export const QueryForm = ({
           const formData = new FormData(e.currentTarget);
           void handleAction(formData);
         }}
-        onReset={() => {
-          void handleReset();
-        }}
+        onReset={handleReset}
       >
         <Flex alignItems="end" gap="size-200">
           <RadioGroup

@@ -26,6 +26,22 @@ const mockServers: ServerT[] = [
   },
 ];
 
+function createDeferred<T>(): {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+} {
+  let resolveRef: ((value: T) => void) | undefined;
+  const promise = new Promise<T>((res) => {
+    resolveRef = res;
+  });
+  return {
+    promise,
+    resolve: (value: T) => {
+      resolveRef?.(value);
+    },
+  };
+}
+
 describe("<App /> in Browser Mode", () => {
   let queryIpv4Mock: Mock<QueryFn>;
   let queryIpv6Mock: Mock<QueryFn>;
@@ -120,7 +136,7 @@ describe("<App /> in Browser Mode", () => {
     await expect.element(pureDnsHeading).not.toBeInTheDocument();
   });
 
-  it("triggers queries upon domain form submission", async () => {
+  it("triggers queries upon domain form submission and renders results", async () => {
     const screen = await renderApp();
 
     const submitBtn = screen.getByRole("button", { name: /submit|查詢/i });
@@ -135,18 +151,92 @@ describe("<App /> in Browser Mode", () => {
 
     expect(queryIpv4Mock).toHaveBeenCalledWith("dns", "example.com");
     expect(queryIpv6Mock).toHaveBeenCalledWith("dns", "example.com");
+
+    const ipv4Output = screen.getByText(/93\.184\.216\.34/);
+    await expect.element(ipv4Output).toBeInTheDocument();
+    await expect.element(ipv4Output).toBeVisible();
+
+    const ipv6Output = screen.getByText(/2606:2800:220:1:248:1893:25c8:1946/);
+    await expect.element(ipv6Output).toBeInTheDocument();
+    await expect.element(ipv6Output).toBeVisible();
   });
 
-  it("clears results when clicking Reset", async () => {
+  it("clears rendered results locally without extra IPC when clicking Reset", async () => {
     const screen = await renderApp();
+
+    const domainInput = screen.getByRole("textbox", {
+      name: /domain|網域名稱/i,
+    });
+    await domainInput.fill("example.com");
+
+    const submitBtn = screen.getByRole("button", { name: /submit|查詢/i });
+    await submitBtn.click();
+
+    const ipv4Output = screen.getByText(/93\.184\.216\.34/);
+    await expect.element(ipv4Output).toBeInTheDocument();
+    await expect.element(ipv4Output).toBeVisible();
 
     const resetBtn = screen.getByRole("button", { name: /reset|清除/i });
     await expect.element(resetBtn).toBeVisible();
-
     await resetBtn.click();
 
-    expect(queryIpv4Mock).toHaveBeenCalledWith("dns", "");
-    expect(queryIpv6Mock).toHaveBeenCalledWith("dns", "");
+    await expect.element(ipv4Output).not.toBeInTheDocument();
+    expect(queryIpv4Mock).toHaveBeenCalledTimes(1);
+    expect(queryIpv6Mock).toHaveBeenCalledTimes(1);
+  });
+
+  it("disables the form while loading and renders IPv4 then IPv6 results", async () => {
+    const deferredIpv4 = createDeferred<string[]>();
+    const deferredIpv6 = createDeferred<string[]>();
+    queryIpv4Mock.mockImplementationOnce(
+      async () => await deferredIpv4.promise,
+    );
+    queryIpv6Mock.mockImplementationOnce(
+      async () => await deferredIpv6.promise,
+    );
+
+    const screen = await renderApp();
+
+    const domainInput = screen.getByRole("textbox", {
+      name: /domain|網域名稱/i,
+    });
+    await domainInput.fill("slow.example.com");
+
+    const submitBtn = screen.getByRole("button", { name: /submit|查詢/i });
+    await submitBtn.click();
+
+    await expect.element(domainInput).toBeDisabled();
+
+    deferredIpv4.resolve(["ipv4: 10.00ms\n192.0.2.1"]);
+
+    const ipv4Output = screen.getByText(/192\.0\.2\.1/);
+    await expect.element(ipv4Output).toBeInTheDocument();
+    await expect.element(ipv4Output).toBeVisible();
+
+    deferredIpv6.resolve(["ipv6: 14.00ms\n2001:db8::1"]);
+
+    const ipv6Output = screen.getByText(/2001:db8::1/);
+    await expect.element(ipv6Output).toBeInTheDocument();
+    await expect.element(ipv6Output).toBeVisible();
+    await expect.element(domainInput).toBeEnabled();
+  });
+
+  it("recovers loading state when IPC query rejects", async () => {
+    queryIpv4Mock.mockRejectedValueOnce(new Error("IPC failure"));
+
+    const screen = await renderApp();
+
+    const domainInput = screen.getByRole("textbox", {
+      name: /domain|網域名稱/i,
+    });
+    await domainInput.fill("broken.example.com");
+
+    const submitBtn = screen.getByRole("button", { name: /submit|查詢/i });
+    await submitBtn.click();
+
+    await expect.element(submitBtn).toBeEnabled();
+    expect(queryIpv4Mock).toHaveBeenCalledWith("dns", "broken.example.com");
+    expect(queryIpv6Mock).not.toHaveBeenCalled();
   });
 
   it("updates UI language dynamically when locale changes", async () => {

@@ -14,7 +14,7 @@ Tests are split into two Vitest workspace projects configured directly in `vite.
 
 - **Renderer Project (`test/renderer/**`)**:
   - Runs in headless Chromium via `vitest/browser` and `@vitest/browser-playwright`.
-  - Mounts components via `renderApp()` wrapped in `<QueryClientProvider>` with mock `window.api`.
+  - Mounts components via `renderApp()` with mock `window.api`.
   - Dual UI assertion requirement:
     - DOM presence: `await expect.element(el).toBeInTheDocument()`
     - Visibility: `await expect.element(el).toBeVisible()`
