@@ -28,6 +28,7 @@
   },
   "allowScripts": {
     "fs-xattr@0.3.1": true,
+    "fsevents": false,
     "macos-alias@0.2.12": true
   },
   "devDependencies": {
