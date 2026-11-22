@@ -12,7 +12,7 @@ const buildFromTemplateMock = vi.fn<
 vi.mock("electron", () => {
   const electronMock = {
     app: {
-      name: "vp-electron-dns",
+      name: "electron-dns",
     },
     Menu: {
       buildFromTemplate: (template: MenuItemConstructorOptions[]) =>

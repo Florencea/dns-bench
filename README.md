@@ -1,6 +1,6 @@
-# VP Electron DNS
+# Electron DNS
 
-[![CI](https://github.com/Florencea/vp-electron-dns/actions/workflows/ci.yml/badge.svg)](https://github.com/Florencea/vp-electron-dns/actions/workflows/ci.yml)
+[![CI](https://github.com/Florencea/electron-dns/actions/workflows/ci.yml/badge.svg)](https://github.com/Florencea/electron-dns/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 A DNS and DNS-over-HTTPS (DoH) benchmarking desktop application powered by **Electron**, **Vite 8**, **React 19**, **Adobe React Spectrum**, **Tailwind CSS v4**, and **TanStack Query**.

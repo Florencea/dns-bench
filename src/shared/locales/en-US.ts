@@ -46,7 +46,7 @@ export const enUS = {
     },
   },
   ui: {
-    title: "VP Electron DNS",
+    title: "Electron DNS",
     languageLabel: "Select Language",
     queryMode: "Query Mode",
     dnsMode: "DNS",

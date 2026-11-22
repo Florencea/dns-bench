@@ -46,7 +46,7 @@ export const zhTW = {
     },
   },
   ui: {
-    title: "VP Electron DNS",
+    title: "Electron DNS",
     languageLabel: "選擇語言",
     queryMode: "查詢模式",
     dnsMode: "DNS",

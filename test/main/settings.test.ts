@@ -29,7 +29,9 @@ describe("settings module", () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "vp-dns-settings-test-"));
+    tempDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "electron-dns-settings-test-"),
+    );
     getPathMock.mockReturnValue(tempDir);
     getLocaleMock.mockReturnValue("en-US");
   });
