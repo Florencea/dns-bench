@@ -1,14 +1,12 @@
 import electronPath from "electron";
 import type { ChildProcess } from "node:child_process";
 import { spawn } from "node:child_process";
-import type { createServer, ViteUserConfig } from "vite-plus";
-import { build } from "vite-plus";
-
-type ViteDevServer = Awaited<ReturnType<typeof createServer>>;
-type Plugin = NonNullable<ViteUserConfig["plugins"]>[number];
+import { build, type Plugin, type ViteDevServer } from "vite";
 
 type BuildWatcher = Extract<Awaited<ReturnType<typeof build>>, { on: unknown }>;
-type WatcherEvent = { code: string };
+interface WatcherEvent {
+  code: string;
+}
 
 function isWatcher(result: unknown): result is BuildWatcher {
   return (
@@ -19,8 +17,11 @@ function isWatcher(result: unknown): result is BuildWatcher {
   );
 }
 
-function setupWatcher(watcher: BuildWatcher, onRebuild: () => void): Promise<void> {
-  return new Promise((resolve) => {
+async function setupWatcher(
+  watcher: BuildWatcher,
+  onRebuild: () => void,
+): Promise<void> {
+  await new Promise<void>((resolve) => {
     let isFirstBuild = true;
     watcher.on("event", (event: WatcherEvent) => {
       if (event.code === "BUNDLE_END") {
@@ -39,18 +40,23 @@ export function electronDevPlugin(): Plugin {
   return {
     name: "vite-electron-dev",
     apply(_config, { command, mode }) {
-      return command === "serve" && !process.env.VITEST && mode !== "test";
+      return (
+        command === "serve" &&
+        (process.env.VITEST ?? "") === "" &&
+        mode !== "test"
+      );
     },
     configureServer(server: ViteDevServer) {
-      server.httpServer?.once("listening", async () => {
-        const address = server.httpServer?.address();
+      const startDevWatchers = async (): Promise<void> => {
+        const address = server.httpServer?.address() ?? null;
         let port = 5173;
-        if (address && typeof address === "object") {
+        if (address !== null && typeof address === "object") {
           port = address.port;
         }
 
-        const protocol = server.config.server.https ? "https" : "http";
-        const url = `${protocol}://localhost:${port}`;
+        const protocol =
+          server.config.server.https !== undefined ? "https" : "http";
+        const url = `${protocol}://localhost:${port.toString()}`;
 
         const env: Record<string, string | undefined> = {
           ...process.env,
@@ -62,13 +68,17 @@ export function electronDevPlugin(): Plugin {
         let isRestarting = false;
 
         async function cleanExit(code = 0) {
-          if (electronProcess) {
+          if (electronProcess !== null) {
             electronProcess.removeAllListeners("close");
             electronProcess.kill();
             electronProcess = null;
           }
           try {
-            await Promise.all([mainWatcher.close(), preloadWatcher.close(), server.close()]);
+            await Promise.all([
+              mainWatcher.close(),
+              preloadWatcher.close(),
+              server.close(),
+            ]);
           } catch {
             // Ignore cleanup errors
           } finally {
@@ -77,31 +87,31 @@ export function electronDevPlugin(): Plugin {
         }
 
         function startElectron() {
-          if (electronProcess) {
+          if (electronProcess !== null) {
             isRestarting = true;
             electronProcess.removeAllListeners("close");
             electronProcess.kill();
             electronProcess = null;
           }
 
-          const binPath = typeof electronPath === "string" ? electronPath : "electron";
+          const rawElectronPath: unknown = electronPath;
+          const binPath =
+            typeof rawElectronPath === "string" ? rawElectronPath : "electron";
           const proc = spawn(binPath, ["."], {
             stdio: ["inherit", "inherit", "pipe"],
             env,
           });
 
-          if (proc.stderr !== null) {
-            proc.stderr.setEncoding("utf-8");
-            proc.stderr.on("data", (chunk: string) => {
-              const lines = chunk.split("\n");
-              const filtered = lines.filter(
-                (line) => !line.includes("sandbox_extension_issue_file failed"),
-              );
-              if (filtered.some((line) => line.trim().length > 0)) {
-                process.stderr.write(filtered.join("\n"));
-              }
-            });
-          }
+          proc.stderr.setEncoding("utf-8");
+          proc.stderr.on("data", (chunk: string) => {
+            const lines = chunk.split("\n");
+            const filtered = lines.filter(
+              (line) => !line.includes("sandbox_extension_issue_file failed"),
+            );
+            if (filtered.some((line) => line.trim().length > 0)) {
+              process.stderr.write(filtered.join("\n"));
+            }
+          });
 
           proc.on("close", (code: number | null) => {
             if (!isRestarting) {
@@ -154,6 +164,10 @@ export function electronDevPlugin(): Plugin {
         process.on("SIGTERM", () => {
           void cleanExit(0);
         });
+      };
+
+      server.httpServer?.once("listening", () => {
+        void startDevWatchers();
       });
     },
   };

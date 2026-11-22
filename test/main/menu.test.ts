@@ -1,10 +1,12 @@
 import type { MenuItemConstructorOptions } from "electron";
-import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createApplicationMenu } from "../../src/main/menu";
 import type { SupportedLocale } from "../../src/shared/types";
 
 const buildFromTemplateMock = vi.fn<
-  (template: MenuItemConstructorOptions[]) => { items: MenuItemConstructorOptions[] }
+  (template: MenuItemConstructorOptions[]) => {
+    items: MenuItemConstructorOptions[];
+  }
 >((template) => ({ items: template }));
 
 vi.mock("electron", () => {

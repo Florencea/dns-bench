@@ -5,7 +5,7 @@
     "target": "es2023",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "esnext",
-    "types": ["vite-plus/client"],
+    "types": ["vite/client"],
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -14,7 +14,6 @@
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
-    "composite": true,
     "jsx": "react-jsx",
 
     /* Linting & Erasable Syntax */
@@ -26,5 +25,10 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/renderer/**/*", "src/preload/*.d.ts", "src/shared/**/*", "test/renderer/**/*"]
+  "include": [
+    "src/renderer/**/*",
+    "src/preload/*.d.ts",
+    "src/shared/**/*",
+    "test/renderer/**/*"
+  ]
 }

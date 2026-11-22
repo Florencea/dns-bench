@@ -1,0 +1,10 @@
+dist
+dist-ssr
+release
+out
+.cache
+.vitest
+test-results
+playwright-report
+blob-report
+package-lock.json

@@ -1,8 +1,8 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite-plus";
-import { playwright } from "vite-plus/test/browser-playwright";
-import { electronDevPlugin } from "./scripts/electron-dev-plugin";
+import { playwright } from "@vitest/browser-playwright";
+import { defineConfig } from "vitest/config";
+import { electronDevPlugin } from "./scripts/electron-dev-plugin.ts";
 
 export default defineConfig(({ mode }) => {
   if (mode === "main") {
@@ -34,12 +34,6 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    run: {
-      cache: {
-        scripts: true,
-        tasks: true,
-      },
-    },
     base: "./",
     server: {
       watch: {
@@ -50,56 +44,13 @@ export default defineConfig(({ mode }) => {
       outDir: "dist/renderer",
       chunkSizeWarningLimit: 1000,
     },
-    lint: {
-      ignorePatterns: [
-        "dist/**",
-        "release/**",
-        "out/**",
-        ".cache/**",
-        ".vitest/**",
-        "test-results/**",
-        "playwright-report/**",
-        "blob-report/**",
-      ],
-      options: {
-        typeAware: true,
-        typeCheck: true,
-      },
-      categories: {
-        correctness: "error",
-        suspicious: "error",
-        perf: "error",
-      },
-      plugins: ["react", "unicorn", "typescript", "oxc", "vitest", "promise"],
-      rules: {
-        "react/react-in-jsx-scope": "off",
-      },
-    },
-    fmt: {
-      ignorePatterns: [
-        "dist/**",
-        "release/**",
-        "out/**",
-        ".cache/**",
-        ".vitest/**",
-        "test-results/**",
-        "playwright-report/**",
-        "blob-report/**",
-      ],
-      sortPackageJson: true,
-    },
-    plugins: [
-      react({
-        compiler: true,
-      }),
-      tailwindcss(),
-      electronDevPlugin(),
-    ],
+    plugins: [react(), tailwindcss(), electronDevPlugin()],
     test: {
       silent: "passed-only",
-      allowOnly: !process.env.CI,
+      allowOnly: (process.env.CI ?? "") === "",
       projects: [
         {
+          extends: true,
           test: {
             name: "renderer",
             include: ["test/renderer/**/*.{test,spec}.{ts,tsx}"],
@@ -113,9 +64,13 @@ export default defineConfig(({ mode }) => {
           },
         },
         {
+          extends: true,
           test: {
             name: "main",
-            include: ["test/main/**/*.{test,spec}.ts", "test/canary/**/*.{test,spec}.ts"],
+            include: [
+              "test/main/**/*.{test,spec}.ts",
+              "test/canary/**/*.{test,spec}.ts",
+            ],
             environment: "node",
           },
         },

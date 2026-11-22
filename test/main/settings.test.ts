@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getInitialLocale,
   getSettingsPath,
@@ -55,7 +55,11 @@ describe("settings module", () => {
     const corruptedSettings = await loadSettings();
     expect(corruptedSettings).toEqual({});
 
-    await fs.writeFile(filePath, JSON.stringify({ locale: "unsupported-LOCALE" }), "utf-8");
+    await fs.writeFile(
+      filePath,
+      JSON.stringify({ locale: "unsupported-LOCALE" }),
+      "utf-8",
+    );
     const invalidSchemaSettings = await loadSettings();
     expect(invalidSchemaSettings).toEqual({});
   });

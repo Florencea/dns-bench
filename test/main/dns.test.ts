@@ -1,5 +1,10 @@
-import { describe, expect, it, vi } from "vite-plus/test";
-import { fetchDns, fetchHost, resolveDns, resolveHost } from "../../src/main/dns";
+import { describe, expect, it, vi } from "vitest";
+import {
+  fetchDns,
+  fetchHost,
+  resolveDns,
+  resolveHost,
+} from "../../src/main/dns";
 import { SERVERS } from "../../src/shared/servers";
 
 describe("SERVERS configuration", () => {

@@ -40,7 +40,9 @@ export const ServerCard = ({ server, result, t }: ServerCardProps) => {
                   </Link>
                 )}
                 {ip !== "-" && <LabeledValue label={t.dnsLabel} value={ip} />}
-                {dohEndpoint !== "-" && <LabeledValue label={t.dohLabel} value={dohEndpoint} />}
+                {dohEndpoint !== "-" && (
+                  <LabeledValue label={t.dohLabel} value={dohEndpoint} />
+                )}
               </Flex>
             </Content>
           </ContextualHelp>

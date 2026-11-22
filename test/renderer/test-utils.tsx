@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, StrictMode } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { page } from "vite-plus/test/browser";
+import { page } from "vitest/browser";
 import { App } from "../../src/renderer/App";
 
 let currentRoot: Root | null = null;
@@ -9,6 +9,7 @@ let currentRoot: Root | null = null;
 export async function cleanupApp(): Promise<void> {
   if (currentRoot !== null) {
     await act(async () => {
+      await Promise.resolve();
       currentRoot?.unmount();
     });
     currentRoot = null;
@@ -42,6 +43,7 @@ export async function renderApp(): Promise<typeof page> {
 
   currentRoot = createRoot(container);
   await act(async () => {
+    await Promise.resolve();
     currentRoot?.render(
       <StrictMode>
         <QueryClientProvider client={queryClient}>

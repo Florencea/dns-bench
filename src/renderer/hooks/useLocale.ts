@@ -11,19 +11,18 @@ function notify(): void {
 }
 
 export function initLocaleSubscription(): void {
-  if (typeof window !== "undefined" && window.api?.getLocale !== undefined) {
+  if (window.api !== undefined) {
+    const { getLocale, onLocaleChange } = window.api;
     const fetchInitial = async (): Promise<void> => {
-      const saved = await window.api.getLocale();
+      const saved = await getLocale();
       if (currentLocale !== saved) {
         currentLocale = saved;
         notify();
       }
     };
     void fetchInitial();
-  }
 
-  if (typeof window !== "undefined" && window.api?.onLocaleChange !== undefined) {
-    window.api.onLocaleChange((newLocale) => {
+    onLocaleChange((newLocale) => {
       if (currentLocale !== newLocale) {
         currentLocale = newLocale;
         notify();
@@ -57,12 +56,19 @@ async function changeLocale(newLocale: SupportedLocale): Promise<void> {
     currentLocale = newLocale;
     notify();
   }
-  if (typeof window !== "undefined" && window.api?.setLocale !== undefined) {
+  if (window.api !== undefined) {
     await window.api.setLocale(newLocale);
   }
 }
 
-export function useLocale(): [SupportedLocale, (newLocale: SupportedLocale) => Promise<void>] {
-  const locale = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+export function useLocale(): [
+  SupportedLocale,
+  (newLocale: SupportedLocale) => Promise<void>,
+] {
+  const locale = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
   return [locale, changeLocale];
 }

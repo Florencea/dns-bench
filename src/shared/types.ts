@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { SupportedLocale } from "./locales";
 
-const ModeSchema = z.enum(["dns", "doh"]);
+export const ModeSchema = z.enum(["dns", "doh"]);
 export type ModeT = z.infer<typeof ModeSchema>;
 
 export const ServerSchema = z.object({

@@ -14,7 +14,6 @@
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
-    "composite": true,
 
     /* Linting & Erasable Syntax */
     "strict": true,
@@ -27,7 +26,6 @@
   },
   "include": [
     "*.config.ts",
-    "forge.config.ts",
     "scripts/**/*",
     "src/main/**/*",
     "src/preload/**/*",

@@ -1,5 +1,8 @@
 import { Flex, Heading, Item, Picker, View } from "@adobe/react-spectrum";
-import type { SupportedLocale, TranslationDictionary } from "../../shared/locales";
+import type {
+  SupportedLocale,
+  TranslationDictionary,
+} from "../../shared/locales";
 import { SupportedLocaleSchema } from "../../shared/locales";
 
 interface HeaderBarProps {

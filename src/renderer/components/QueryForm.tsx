@@ -11,7 +11,7 @@ import {
 import { useState } from "react";
 import type { TranslationDictionary } from "../../shared/locales";
 import type { ModeT } from "../../shared/types";
-import { DomainInputSchema } from "../../shared/types";
+import { DomainInputSchema, ModeSchema } from "../../shared/types";
 
 interface QueryFormProps {
   mode: ModeT;
@@ -54,15 +54,22 @@ export const QueryForm = ({
   };
 
   return (
-    <View borderWidth="thin" borderColor="dark" borderRadius="medium" padding="size-250">
+    <View
+      borderWidth="thin"
+      borderColor="dark"
+      borderRadius="medium"
+      padding="size-250"
+    >
       <Form
         isDisabled={isLoading}
-        onSubmit={async (e) => {
+        onSubmit={(e) => {
           e.preventDefault();
           const formData = new FormData(e.currentTarget);
-          await handleAction(formData);
+          void handleAction(formData);
         }}
-        onReset={handleReset}
+        onReset={() => {
+          void handleReset();
+        }}
       >
         <Flex alignItems="end" gap="size-200">
           <RadioGroup
@@ -71,8 +78,9 @@ export const QueryForm = ({
             orientation="horizontal"
             value={mode}
             onChange={(value) => {
-              if (value === "dns" || value === "doh") {
-                onModeChange(value);
+              const parsed = ModeSchema.safeParse(value);
+              if (parsed.success) {
+                onModeChange(parsed.data);
               }
             }}
           >
@@ -81,7 +89,7 @@ export const QueryForm = ({
           </RadioGroup>
           <TextField
             label={t.domainLabel}
-            placeholder={t.domainPlaceholder}
+            description={t.domainPlaceholder}
             name="host"
             value={domainValue}
             onChange={(val) => {

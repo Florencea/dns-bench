@@ -1,7 +1,10 @@
-import type { Mock } from "vite-plus/test";
-import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+import type { Mock } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ModeT, ServerT, SupportedLocale } from "../../src/shared/types";
-import { initLocaleSubscription, resetLocaleStore } from "../../src/renderer/hooks/useLocale";
+import {
+  initLocaleSubscription,
+  resetLocaleStore,
+} from "../../src/renderer/hooks/useLocale";
 import { renderApp } from "./test-utils";
 
 type QueryFn = (mode: ModeT, name: string) => Promise<string[]>;
@@ -28,20 +31,27 @@ describe("<App /> in Browser Mode", () => {
   let queryIpv6Mock: Mock<QueryFn>;
   let getLocaleMock: Mock<() => Promise<SupportedLocale>>;
   let setLocaleMock: Mock<(locale: SupportedLocale) => Promise<void>>;
-  let localeChangeListeners: Array<(locale: SupportedLocale) => void>;
-  let onLocaleChangeMock: Mock<(callback: (locale: SupportedLocale) => void) => () => void>;
+  let localeChangeListeners: ((locale: SupportedLocale) => void)[];
+  let onLocaleChangeMock: Mock<
+    (callback: (locale: SupportedLocale) => void) => () => void
+  >;
 
   beforeEach(() => {
-    queryIpv4Mock = vi.fn<QueryFn>().mockResolvedValue(["ipv4: 12.34ms\n93.184.216.34"]);
+    queryIpv4Mock = vi
+      .fn<QueryFn>()
+      .mockResolvedValue(["ipv4: 12.34ms\n93.184.216.34"]);
     queryIpv6Mock = vi
       .fn<QueryFn>()
       .mockResolvedValue(["ipv6: 15.67ms\n2606:2800:220:1:248:1893:25c8:1946"]);
 
     localeChangeListeners = [];
-    getLocaleMock = vi.fn<() => Promise<SupportedLocale>>().mockResolvedValue("en-US");
+    getLocaleMock = vi
+      .fn<() => Promise<SupportedLocale>>()
+      .mockResolvedValue("en-US");
     setLocaleMock = vi
       .fn<(locale: SupportedLocale) => Promise<void>>()
       .mockImplementation(async (loc) => {
+        await Promise.resolve();
         for (const listener of localeChangeListeners) {
           listener(loc);
         }
@@ -116,7 +126,9 @@ describe("<App /> in Browser Mode", () => {
     const submitBtn = screen.getByRole("button", { name: /submit|查詢/i });
     await expect.element(submitBtn).toBeVisible();
 
-    const domainInput = screen.getByRole("textbox", { name: /domain|網域名稱/i });
+    const domainInput = screen.getByRole("textbox", {
+      name: /domain|網域名稱/i,
+    });
     await domainInput.fill("example.com");
 
     await submitBtn.click();

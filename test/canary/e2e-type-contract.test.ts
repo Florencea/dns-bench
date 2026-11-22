@@ -1,4 +1,4 @@
-import { expectTypeOf, test } from "vite-plus/test";
+import { expectTypeOf, test } from "vitest";
 import type { DnsQueryT } from "../../src/main/dns";
 import type { AppConfig } from "../../src/shared/config";
 import type { SupportedLocale } from "../../src/shared/locales";
@@ -36,7 +36,9 @@ test("E2E Type Contract: DnsQueryT matches query parameters structure", () => {
     type: "A" | "AAAA";
   }>();
 
-  expectTypeOf<DnsQueryT>().toHaveProperty("type").toEqualTypeOf<"A" | "AAAA">();
+  expectTypeOf<DnsQueryT>()
+    .toHaveProperty("type")
+    .toEqualTypeOf<"A" | "AAAA">();
 });
 
 test("E2E Type Contract: WindowApi contract matches preload exposition", () => {
@@ -47,7 +49,9 @@ test("E2E Type Contract: WindowApi contract matches preload exposition", () => {
   expectTypeOf<WindowApi["queryIpv6"]>().toEqualTypeOf<
     (mode: ModeT, name: string) => Promise<string[]>
   >();
-  expectTypeOf<WindowApi["getLocale"]>().toEqualTypeOf<() => Promise<SupportedLocale>>();
+  expectTypeOf<WindowApi["getLocale"]>().toEqualTypeOf<
+    () => Promise<SupportedLocale>
+  >();
   expectTypeOf<WindowApi["setLocale"]>().toEqualTypeOf<
     (locale: SupportedLocale) => Promise<void>
   >();

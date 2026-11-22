@@ -8,7 +8,7 @@ const { Menu, app } = electron;
 export function createApplicationMenu(
   locale: SupportedLocale,
   onSelectLocale?: (locale: SupportedLocale) => void,
-): electron.Menu {
+): Electron.Menu {
   const isDev = !app.isPackaged;
   const isMac = process.platform === "darwin";
   const appName = APP_CONFIG.title;
@@ -76,7 +76,12 @@ export function createApplicationMenu(
       label: t.menu.view.label,
       role: "viewMenu",
       submenu: [
-        { role: "reload", label: t.menu.view.reload, visible: isDev, enabled: isDev },
+        {
+          role: "reload",
+          label: t.menu.view.reload,
+          visible: isDev,
+          enabled: isDev,
+        },
         {
           role: "forceReload",
           label: t.menu.view.forceReload,
@@ -130,7 +135,12 @@ export function createApplicationMenu(
       label: t.menu.view.label,
       role: "viewMenu",
       submenu: [
-        { role: "reload", label: t.menu.view.reload, visible: isDev, enabled: isDev },
+        {
+          role: "reload",
+          label: t.menu.view.reload,
+          visible: isDev,
+          enabled: isDev,
+        },
         {
           role: "forceReload",
           label: t.menu.view.forceReload,

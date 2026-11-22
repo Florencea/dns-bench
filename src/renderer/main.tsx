@@ -8,7 +8,7 @@ import "./index.css";
 initLocaleSubscription();
 
 const container = document.getElementById("root");
-if (container) {
+if (container !== null) {
   createRoot(container).render(
     <StrictMode>
       <QueryClientProvider client={new QueryClient()}>

@@ -20,6 +20,8 @@ export function resolveLocale(rawLocale?: string | null): SupportedLocale {
   return "en-US";
 }
 
-export function getTranslations(locale: SupportedLocale): TranslationDictionary {
-  return TRANSLATIONS[locale] ?? zhTW;
+export function getTranslations(
+  locale: SupportedLocale,
+): TranslationDictionary {
+  return TRANSLATIONS[locale];
 }

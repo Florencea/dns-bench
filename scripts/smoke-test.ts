@@ -13,7 +13,7 @@ const PackageJsonSchema = z.object({
 });
 
 async function getAvailablePort(): Promise<number> {
-  return new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     const server = net.createServer();
     server.unref();
     server.on("error", reject);
@@ -51,16 +51,18 @@ async function waitForCdpReady(
       // Waiting for Electron browser process to start CDP listener
     }
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
-    return check(attempt + 1);
+    return await check(attempt + 1);
   };
 
-  return check(0);
+  return await check(0);
 }
 
 function findExecutable(): string {
   const outDir = path.resolve(import.meta.dirname, "../out");
   if (!fs.existsSync(outDir)) {
-    throw new Error(`Output directory not found at ${outDir}. Did you run "npm run app:pack"?`);
+    throw new Error(
+      `Output directory not found at ${outDir}. Did you run "npm run app:pack"?`,
+    );
   }
 
   const entries = fs.readdirSync(outDir, { withFileTypes: true });
@@ -90,7 +92,12 @@ function findExecutable(): string {
       const subEntries = fs.readdirSync(fullDirPath, { withFileTypes: true });
       for (const app of subEntries) {
         if (app.isDirectory() && app.name.endsWith(".app")) {
-          const macOSDir = path.join(fullDirPath, app.name, "Contents", "MacOS");
+          const macOSDir = path.join(
+            fullDirPath,
+            app.name,
+            "Contents",
+            "MacOS",
+          );
           if (fs.existsSync(macOSDir)) {
             const binEntries = fs.readdirSync(macOSDir);
             const firstBin = binEntries[0];
@@ -214,17 +221,21 @@ async function runSmokeTest(): Promise<void> {
   const ready = await waitForCdpReady(endpoint);
   if (!ready) {
     appProcess.kill();
-    throw new Error(`Electron application did not open CDP on ${endpoint} within timeout.`);
+    throw new Error(
+      `Electron application did not open CDP on ${endpoint} within timeout.`,
+    );
   }
 
   console.log("[smoke-test] Connecting over CDP...");
   const browser = await chromium.connectOverCDP(endpoint);
 
   try {
-    const defaultContext = browser.contexts()[0] ?? (await browser.newContext());
+    const defaultContext =
+      browser.contexts()[0] ?? (await browser.newContext());
     const existingPages = defaultContext.pages();
     const window =
-      existingPages[0] ?? (await defaultContext.waitForEvent("page", { timeout: 10_000 }));
+      existingPages[0] ??
+      (await defaultContext.waitForEvent("page", { timeout: 10_000 }));
 
     window.on("pageerror", (error: Error) => {
       console.error("[smoke-test] Page error:", error);
@@ -237,7 +248,9 @@ async function runSmokeTest(): Promise<void> {
     const title = await window.title();
     console.log(`[smoke-test] Window title: "${title}"`);
     if (title.trim().length === 0) {
-      throw new Error("Window title is empty! Document title was not properly set.");
+      throw new Error(
+        "Window title is empty! Document title was not properly set.",
+      );
     }
 
     console.log("[smoke-test] Verifying #root element render...");
@@ -246,12 +259,16 @@ async function runSmokeTest(): Promise<void> {
 
     const innerHtml = await rootLocator.innerHTML();
     if (innerHtml.trim().length === 0) {
-      throw new Error("Application #root element is empty! React failed to render UI.");
+      throw new Error(
+        "Application #root element is empty! React failed to render UI.",
+      );
     }
 
     if (pageErrors.length > 0) {
       const errorMessages = pageErrors.map((err) => err.message).join("; ");
-      throw new Error(`Encountered page errors during launch: ${errorMessages}`);
+      throw new Error(
+        `Encountered page errors during launch: ${errorMessages}`,
+      );
     }
 
     console.log(
@@ -260,19 +277,25 @@ async function runSmokeTest(): Promise<void> {
 
     console.log("[smoke-test] Verifying real window.api object in Electron...");
     const hasQueryApi = await window.evaluate(() => {
-      const g = globalThis as Record<string, unknown>;
-      const api = g.api;
+      const api: unknown = Reflect.get(globalThis, "api");
       if (typeof api === "object" && api !== null) {
         return "queryIpv4" in api && "queryIpv6" in api;
       }
       return false;
     });
-    console.log("[smoke-test] window.api query methods available:", hasQueryApi);
+    console.log(
+      "[smoke-test] window.api query methods available:",
+      hasQueryApi,
+    );
     if (!hasQueryApi) {
-      throw new Error("window.api is missing expected methods: queryIpv4, queryIpv6");
+      throw new Error(
+        "window.api is missing expected methods: queryIpv4, queryIpv6",
+      );
     }
 
-    console.log("[smoke-test] Testing domain query interaction with real preload IPC...");
+    console.log(
+      "[smoke-test] Testing domain query interaction with real preload IPC...",
+    );
     const hostInput = window.locator('input[name="host"]');
     await hostInput.waitFor({ state: "visible", timeout: 5000 });
     await hostInput.fill("example.com");
@@ -281,13 +304,22 @@ async function runSmokeTest(): Promise<void> {
     await submitBtn.waitFor({ state: "visible", timeout: 5000 });
     await submitBtn.click();
 
-    console.log("[smoke-test] Waiting for real DNS query results to populate in UI...");
-    const codeWithResult = window.locator("code").filter({ hasText: "ipv4:" }).first();
+    console.log(
+      "[smoke-test] Waiting for real DNS query results to populate in UI...",
+    );
+    const codeWithResult = window
+      .locator("code")
+      .filter({ hasText: "ipv4:" })
+      .first();
     await codeWithResult.waitFor({ state: "visible", timeout: 15_000 });
     console.log("[smoke-test] Real DNS query results successfully rendered!");
   } finally {
     console.log("[smoke-test] Closing application...");
-    await browser.close().catch(() => {});
+    try {
+      await browser.close();
+    } catch {
+      // Ignore browser close errors
+    }
     appProcess.kill("SIGTERM");
   }
 

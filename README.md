@@ -1,37 +1,36 @@
 # VP Electron DNS
 
 [![CI](https://github.com/Florencea/vp-electron-dns/actions/workflows/ci.yml/badge.svg)](https://github.com/Florencea/vp-electron-dns/actions/workflows/ci.yml)
-[![Node Canary](https://github.com/Florencea/vp-electron-dns/actions/workflows/node-canary.yml/badge.svg)](https://github.com/Florencea/vp-electron-dns/actions/workflows/node-canary.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A DNS and DNS-over-HTTPS (DoH) benchmarking desktop application powered by **Electron**, **Vite+**, **React 19**, **Adobe React Spectrum**, **Tailwind CSS v4**, and **TanStack Query**.
+A DNS and DNS-over-HTTPS (DoH) benchmarking desktop application powered by **Electron**, **Vite 8**, **React 19**, **Adobe React Spectrum**, **Tailwind CSS v4**, and **TanStack Query**.
 
-Designed for deterministic DNS evaluation across preset and custom resolvers, featuring native multi-target builds, sub-second HMR with automated process hot-restart, and zero third-party Electron wrapper meta-frameworks.
+Designed for deterministic DNS evaluation across preset and custom resolvers, featuring direct multi-target Vite/Rolldown builds, transparent HMR with automated main-process hot-restart, and zero third-party Electron wrapper meta-frameworks.
 
 ---
 
 ## Highlights
 
-- **Strict Quality Gate**: Unified verification gate (`npm run agent:verify:gate`) executing strict TypeScript, Oxlint, Oxfmt, Knip dead-code audit, dual-track testing, Vite+ multi-target builds, and Electron packaging validation.
-- **Vite+ & Rolldown**: Built directly with project-local Vite+ (`vp`) and Rolldown for sub-second builds across main, preload, and renderer, managed via `npm` scripts without requiring a global `vp` CLI.
-- **Hot-Restart & Dev Runner**: Native Vite+ dev runner (`npm run dev`) providing true process hot-restart on main process changes, window reload on preload edits, and component-level HMR for renderer.
-- **Dual-Track Testing**: Component tests execute in headless Chromium browser mode via `@vitest/browser-playwright`, while main process, DNS resolver, and type contract tests run in Node.js.
-- **Agent-First Workflow**: Clear architectural boundaries, strict coding rules, and TDD workflow documented in [AGENTS.md](AGENTS.md).
+- **Strict Quality Gate**: Unified verification gate (`npm run verify`) executing strict TypeScript (`tsc -b`), ESLint (`strictTypeChecked` / `stylisticTypeChecked`, `noInlineConfig: true`, `--max-warnings 0`), Prettier formatting, dual-track Vitest tests, Electron Forge packaging, and CDP E2E smoke validation.
+- **Direct Vite 8 & Rolldown**: Built directly with Vite 8 and Rolldown across main, preload, and renderer targets without wrapper CLIs or hidden compiler layers.
+- **Hot-Restart & Dev Runner**: Transparent Vite dev plugin (`scripts/electron-dev-plugin.ts`) providing process hot-restart on main process edits, full reload on preload changes, and React HMR for the renderer.
+- **Dual-Track Testing**: Renderer UI tests execute in headless Chromium browser mode via `@vitest/browser-playwright`, while main process, DNS resolver, and static type contract tests run in Node.js.
+- **Clear Architecture & Governance**: Explicit process boundaries, Zod boundary validation, and contributor guidelines documented in [AGENTS.md](AGENTS.md).
 - **Process Isolation & Security**: Safe context bridge exposition ensuring raw Node.js internals and IPC channels remain isolated from the renderer.
 
 ---
 
 ## Tech Stack
 
-| Layer                | Technology                                          |
-| :------------------- | :-------------------------------------------------- |
-| **Runtime & Shell**  | Electron (Context Isolation, Safe IPC Bridge)       |
-| **Frontend UI**      | React 19, Adobe React Spectrum, Tailwind CSS v4     |
-| **State & Fetching** | TanStack Query                                      |
-| **Build & Dev**      | Vite+ (`vp`), Rolldown, Native Electron Dev Plugin  |
-| **Testing**          | Vitest (Chromium Browser Mode + Node Backend Tests) |
-| **Packaging**        | Electron Forge v8 (ASAR, Fuses, DMG, ZIP)           |
-| **Code Quality**     | TypeScript (strict), Oxlint, Oxfmt, Knip            |
+| Layer                | Technology                                                      |
+| :------------------- | :-------------------------------------------------------------- |
+| **Runtime & Shell**  | Electron (Context Isolation, Safe IPC Bridge)                   |
+| **Frontend UI**      | React 19, Adobe React Spectrum, Tailwind CSS v4                 |
+| **State & Fetching** | TanStack Query                                                  |
+| **Build & Dev**      | Vite 8 (Rolldown), Native Electron Dev Plugin                   |
+| **Testing**          | Vitest 5 (Chromium Browser Mode + Node Backend Tests)           |
+| **Packaging**        | Electron Forge v8 (ASAR, Fuses, DMG, ZIP)                       |
+| **Code Quality**     | TypeScript 6 (strict), ESLint 10, typescript-eslint, Prettier 3 |
 
 ---
 
@@ -39,7 +38,7 @@ Designed for deterministic DNS evaluation across preset and custom resolvers, fe
 
 ### Prerequisites
 
-- **Node.js** - The required version is specified in `package.json` under the `engines` field (`26.13.1`, enforced by `.npmrc` `engine-strict=true`).
+- **Node.js** - Active LTS runtime satisfying the `engines` ranges declared by project dependencies (enforced by `.npmrc` `engine-strict=true`).
 
 ### Setup
 
@@ -65,50 +64,40 @@ Designed for deterministic DNS evaluation across preset and custom resolvers, fe
 
 ## Available Scripts
 
-### Developer Commands
-
-| Command                  | Description                                                         |
-| :----------------------- | :------------------------------------------------------------------ |
-| `npm run dev`            | Start development environment with Electron runner (local `vp dev`) |
-| `npm run check`          | Run format, Oxlint, and type checks together (local `vp check`)     |
-| `npm run fmt`            | Format code with Oxfmt (local `vp fmt`)                             |
-| `npm run fmt:check`      | Verify formatting without modifying files (local `vp fmt --check`)  |
-| `npm run lint`           | Lint code with Oxlint (local `vp lint`)                             |
-| `npm test`               | Run all Vitest tests (Chromium browser + Node) (local `vp test`)    |
-| `npm run build:all`      | Build all targets (main, preload, renderer) with Vite+              |
-| `npm run check:deadcode` | Detect dead code and unused exports with Knip                       |
-| `npm run app:pack`       | Validate Electron packaging by generating unpacked directory        |
-| `npm run app:mac`        | Package macOS application into `out/`                               |
-| `npm run app:win`        | Package Windows application into `out/`                             |
-| `npm run app:linux`      | Package Linux application into `out/`                               |
-| `npm run test:setup`     | Install Playwright Chromium binary                                  |
-
-### Agent Verification Commands
-
-| Command                       | Description                                                                              |
-| :---------------------------- | :--------------------------------------------------------------------------------------- |
-| `npm run agent:lint:ci`       | Headless workflow validation with actionlint (`actionlint`)                              |
-| `npm run agent:lint:tailwind` | Targeted Tailwind CSS canonical class validation                                         |
-| `npm run agent:lint:fix`      | Automatically fix Oxlint, format, and Tailwind canonical issues                          |
-| `npm run agent:test:unit`     | Vitest suite using flat TAP single-line reporter with colors and progress disabled       |
-| `npm run agent:test:e2e`      | Packaged application smoke test execution                                                |
-| `npm run agent:verify:inner`  | Fast-feedback inner loop: `vp check` + Tailwind validator                                |
-| `npm run agent:verify:unit`   | Inner verification followed by unit tests                                                |
-| `npm run agent:verify:gate`   | Full automated gate: Inner loop + Unit tests + Multi-target Build + App Pack + E2E smoke |
+| Command                 | Description                                                                    |
+| :---------------------- | :----------------------------------------------------------------------------- |
+| `npm run dev`           | Start development environment with Electron hot-restart runner (`vite`)        |
+| `npm run build`         | Build all targets (main, preload, renderer) with Vite                          |
+| `npm run typecheck`     | Run strict TypeScript project-reference check (`tsc -b --pretty false`)        |
+| `npm run lint`          | Lint codebase with ESLint (`eslint --max-warnings 0 .`)                        |
+| `npm run lint:fix`      | Automatically fix ESLint issues (`eslint --fix .`)                             |
+| `npm run format`        | Format files and sort Tailwind classes with Prettier (`prettier --write .`)    |
+| `npm run format:check`  | Verify formatting without modifying files (`prettier --check .`)               |
+| `npm run lint:ci`       | Validate GitHub Actions workflows locally with `actionlint`                    |
+| `npm test`              | Run all Vitest projects (Chromium browser renderer + Node main)                |
+| `npm run test:renderer` | Run Chromium browser renderer tests (`vitest run --project renderer`)          |
+| `npm run test:main`     | Run Node main and type contract tests (`vitest run --project main`)            |
+| `npm run test:e2e`      | Run packaged Electron CDP smoke test (`node scripts/smoke-test.ts`)            |
+| `npm run test:setup`    | Install Playwright Chromium browser binary                                     |
+| `npm run app:pack`      | Build and package unpacked Electron application via Electron Forge             |
+| `npm run app:mac`       | Package macOS application into `out/`                                          |
+| `npm run app:win`       | Package Windows application into `out/`                                        |
+| `npm run app:linux`     | Package Linux application into `out/`                                          |
+| `npm run verify`        | Full gate: `typecheck`, `lint`, `format:check`, `test`, `app:pack`, `test:e2e` |
 
 ---
 
 ## CI/CD Pipeline Architecture
 
 - **Tiered Daily CI (`.github/workflows/ci.yml`)**:
-  - **Tier 1 (`gatekeeper`)**: Runs on `ubuntu-24.04` against the authoritative Node.js runtime (`package.json`). Executes `npm ci`, Playwright browser caching and `test:setup`, the full verification gate (`agent:verify:inner`, `check:deadcode`, `agent:test:unit`, `build:all`, `app:pack`), Linux distribution packaging (`app:linux`), and headless Electron E2E smoke testing (`xvfb-run --auto-servernum npm run agent:test:e2e`).
-  - **Tier 2 (`platform-package`)**: Executes after `gatekeeper` succeeds across `macos-26` and `windows-2025`. Validates runtime path compatibility (`agent:test:unit`), production builds (`build:all`), and platform distribution packaging (`app:mac`, `app:win`).
+  - **Tier 1 (`gatekeeper`)**: Runs on `ubuntu-24.04` with Node.js Active LTS (`lts/*`). Executes `npm ci`, Playwright browser caching and `test:setup`, static verification (`typecheck`, `lint`, `format:check`), unit/component suites (`npm test -- --reporter=tap-flat --no-color`), unpacked Electron packaging (`app:pack`), Linux distribution packaging (`app:linux`), and headless Electron E2E smoke testing (`xvfb-run --auto-servernum npm run test:e2e`).
+  - **Tier 2 (`platform-package`)**: Executes after `gatekeeper` succeeds across `macos-26` and `windows-2025`. Validates runtime path compatibility (`npm test -- --reporter=tap-flat --no-color`), production builds, and platform distribution packaging (`app:mac`, `app:win`).
 
 ---
 
 ## Guidelines
 
-For architectural rules, security standards, and the agent-first feature development workflow, see [AGENTS.md](AGENTS.md).
+For architectural rules, security standards, and the contributor workflow, see [AGENTS.md](AGENTS.md).
 
 ---
 

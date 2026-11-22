@@ -51,7 +51,9 @@ async function bootstrap(): Promise<void> {
 
   let currentLocale: SupportedLocale = await getInitialLocale();
 
-  const handleLocaleChange = async (newLocale: SupportedLocale): Promise<void> => {
+  const handleLocaleChange = async (
+    newLocale: SupportedLocale,
+  ): Promise<void> => {
     currentLocale = newLocale;
     await saveSettings({ locale: newLocale });
     setAppMenu(newLocale);
@@ -74,12 +76,15 @@ async function bootstrap(): Promise<void> {
     return currentLocale;
   });
 
-  ipcMain.handle("set-locale", async (_event: unknown, rawLocale: unknown): Promise<void> => {
-    const parsed = SupportedLocaleSchema.safeParse(rawLocale);
-    if (parsed.success) {
-      await handleLocaleChange(parsed.data);
-    }
-  });
+  ipcMain.handle(
+    "set-locale",
+    async (_event: unknown, rawLocale: unknown): Promise<void> => {
+      const parsed = SupportedLocaleSchema.safeParse(rawLocale);
+      if (parsed.success) {
+        await handleLocaleChange(parsed.data);
+      }
+    },
+  );
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {

@@ -11,7 +11,13 @@ export type { DnsQueryT };
 const AnsSchema = z.object({
   Status: z.number().optional(),
   Answer: z
-    .array(z.object({ type: z.number(), data: z.string(), TTL: z.number().optional() }))
+    .array(
+      z.object({
+        type: z.number(),
+        data: z.string(),
+        TTL: z.number().optional(),
+      }),
+    )
     .optional(),
   Comment: z.string().optional(),
   nameServer: z.string().optional(),
@@ -71,7 +77,9 @@ export const fetchDns = async (query: DnsQueryT): Promise<string> => {
     }
     const data = [
       `${type === "A" ? "ipv4: " : "\nipv6: "}${(t1 - t0).toFixed(2)}ms`,
-      ...answer.map((d) => d.data).filter((ip) => (type === "A" ? isIPv4(ip) : isIPv6(ip))),
+      ...answer
+        .map((d) => d.data)
+        .filter((ip) => (type === "A" ? isIPv4(ip) : isIPv6(ip))),
     ].join("\n");
     return data;
   } catch {
@@ -110,34 +118,48 @@ const HostQuerySchema = z.object({
   servers: z.array(ServerSchema).default(SERVERS),
 });
 
-export const fetchHost = (
+export const fetchHost = async (
   _event: unknown,
   rawType: unknown,
   rawName: unknown,
   rawServers: unknown = SERVERS,
 ): Promise<string[]> => {
-  const parsed = HostQuerySchema.safeParse({ type: rawType, name: rawName, servers: rawServers });
+  const parsed = HostQuerySchema.safeParse({
+    type: rawType,
+    name: rawName,
+    servers: rawServers,
+  });
   if (!parsed.success) {
-    return Promise.resolve([]);
+    return [];
   }
   const { type, name, servers } = parsed.data;
-  return Promise.all(
-    servers.map(({ server, ip }: ServerT) => fetchDns({ server, name, type, ip })),
+  return await Promise.all(
+    servers.map(
+      async ({ server, ip }: ServerT) =>
+        await fetchDns({ server, name, type, ip }),
+    ),
   );
 };
 
-export const resolveHost = (
+export const resolveHost = async (
   _event: unknown,
   rawType: unknown,
   rawName: unknown,
   rawServers: unknown = SERVERS,
 ): Promise<string[]> => {
-  const parsed = HostQuerySchema.safeParse({ type: rawType, name: rawName, servers: rawServers });
+  const parsed = HostQuerySchema.safeParse({
+    type: rawType,
+    name: rawName,
+    servers: rawServers,
+  });
   if (!parsed.success) {
-    return Promise.resolve([]);
+    return [];
   }
   const { type, name, servers } = parsed.data;
-  return Promise.all(
-    servers.map(({ server, ip }: ServerT) => resolveDns({ server, name, type, ip })),
+  return await Promise.all(
+    servers.map(
+      async ({ server, ip }: ServerT) =>
+        await resolveDns({ server, name, type, ip }),
+    ),
   );
 };

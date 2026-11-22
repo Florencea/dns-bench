@@ -37,7 +37,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7.1.0
         with:
-          node-version-file: package.json
+          node-version: "lts/*"
           cache: npm
 
       - name: Install dependencies
@@ -62,17 +62,17 @@ jobs:
       - name: Install Playwright system dependencies on Linux
         run: npx playwright install-deps chromium
 
-      - name: Inner Loop Verification (Check, Tailwind)
-        run: npm run agent:verify:inner
+      - name: Typecheck
+        run: npm run typecheck
 
-      - name: Dead Code Check (Knip)
-        run: npm run check:deadcode
+      - name: Lint
+        run: npm run lint
+
+      - name: Format Check
+        run: npm run format:check
 
       - name: Unit Tests
-        run: npm run agent:test:unit
-
-      - name: Build Production Targets
-        run: npm run build:all
+        run: npm test -- --reporter=tap-flat --no-color
 
       - name: Pack Unpacked Application
         run: npm run app:pack
@@ -80,7 +80,7 @@ jobs:
           DEBUG: "electron-forge:*,electron-packager"
 
       - name: Run E2E Smoke Test
-        run: xvfb-run --auto-servernum npm run agent:test:e2e
+        run: xvfb-run --auto-servernum npm run test:e2e
 
       - name: Package on Linux
         run: npm run app:linux
@@ -93,7 +93,7 @@ jobs:
           {
             echo "### Gatekeeper Summary (Linux)"
             echo "- **Node.js**: $(node -v)"
-            echo "- **Vite+**: $(npx vp --version 2>&1 | head -n 1)"
+            echo "- **Vite**: $(npx vite --version)"
             echo "- **Runner OS**: ${{ runner.os }} (${{ runner.arch }})"
             echo "- **Status**: ${{ job.status }}"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -130,7 +130,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7.1.0
         with:
-          node-version-file: package.json
+          node-version: "lts/*"
           cache: npm
 
       - name: Install dependencies
@@ -153,10 +153,7 @@ jobs:
         run: npm run test:setup
 
       - name: Unit Tests
-        run: npm run agent:test:unit
-
-      - name: Build Production Targets
-        run: npm run build:all
+        run: npm test -- --reporter=tap-flat --no-color
 
       - name: Package on macOS
         if: runner.os == 'macOS'

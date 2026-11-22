@@ -25,7 +25,9 @@ const queryIpv6 = async (mode: ModeT, name: string): Promise<string[]> => {
 const getLocale = async (): Promise<SupportedLocale> => {
   const result: unknown = await ipcRenderer.invoke("get-locale");
   const parsed = SupportedLocaleSchema.safeParse(result);
-  return parsed.success ? parsed.data : resolveLocale(typeof result === "string" ? result : null);
+  return parsed.success
+    ? parsed.data
+    : resolveLocale(typeof result === "string" ? result : null);
 };
 
 const setLocale = async (locale: SupportedLocale): Promise<void> => {
@@ -35,7 +37,9 @@ const setLocale = async (locale: SupportedLocale): Promise<void> => {
   }
 };
 
-const onLocaleChange = (callback: (locale: SupportedLocale) => void): (() => void) => {
+const onLocaleChange = (
+  callback: (locale: SupportedLocale) => void,
+): (() => void) => {
   const listener = (_event: electron.IpcRendererEvent, rawLocale: unknown) => {
     const parsed = SupportedLocaleSchema.safeParse(rawLocale);
     if (parsed.success) {

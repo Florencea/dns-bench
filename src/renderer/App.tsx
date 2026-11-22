@@ -14,8 +14,8 @@ export const App = () => {
 
   const ipv4 = useMutation({
     mutationFn: async (name: string) => {
-      if (typeof window !== "undefined" && typeof window.api?.queryIpv4 === "function") {
-        return window.api.queryIpv4(mode, name);
+      if (window.api !== undefined) {
+        return await window.api.queryIpv4(mode, name);
       }
       return [];
     },
@@ -23,8 +23,8 @@ export const App = () => {
 
   const ipv6 = useMutation({
     mutationFn: async (name: string) => {
-      if (typeof window !== "undefined" && typeof window.api?.queryIpv6 === "function") {
-        return window.api.queryIpv6(mode, name);
+      if (window.api !== undefined) {
+        return await window.api.queryIpv6(mode, name);
       }
       return [];
     },
@@ -50,13 +50,25 @@ export const App = () => {
   };
 
   return (
-    <Provider locale={locale} theme={defaultTheme} UNSAFE_className="h-svh overflow-y-scroll">
+    <Provider
+      locale={locale}
+      theme={defaultTheme}
+      UNSAFE_className="h-svh overflow-y-scroll"
+    >
       <View padding="size-200" paddingTop="size-200">
         <Flex direction="column" gap="size-100">
-          <HeaderBar locale={locale} onLocaleChange={handleLocaleChange} t={t.ui} />
+          <HeaderBar
+            locale={locale}
+            onLocaleChange={(nextLocale) => {
+              void handleLocaleChange(nextLocale);
+            }}
+            t={t.ui}
+          />
           <QueryForm
             mode={mode}
-            onModeChange={handleModeChange}
+            onModeChange={(nextMode) => {
+              void handleModeChange(nextMode);
+            }}
             onSubmit={handleSubmit}
             onReset={handleReset}
             isLoading={isLoading}
