@@ -1,0 +1,87 @@
+{{define "content"}}
+<nav aria-label="{{.T.UI.QueryMode}}" class="mb-3">
+  <ul class="nav nav-pills gap-2">
+    <li class="nav-item">
+      <a class="nav-link {{if eq .Mode "dns"}}active{{else}}text-dark bg-white border{{end}}"
+         href="/?mode=dns"{{if eq .Mode "dns"}} aria-current="page"{{end}}>{{.T.UI.DNSMode}}</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {{if eq .Mode "doh"}}active{{else}}text-dark bg-white border{{end}}"
+         href="/?mode=doh"{{if eq .Mode "doh"}} aria-current="page"{{end}}>{{.T.UI.DoHMode}}</a>
+    </li>
+  </ul>
+</nav>
+
+<section aria-label="{{.T.UI.QueryFormLabel}}" class="card mb-4">
+  <div class="card-body">
+    <form method="GET" action="/" class="row g-3 align-items-end">
+      <input type="hidden" name="mode" value="{{.Mode}}">
+      <div class="col-12 col-md-8 col-lg-6">
+        <label for="domain-input" class="form-label">{{.T.UI.DomainLabel}}</label>
+        <input id="domain-input"
+               name="host"
+               type="text"
+               value="{{.HostInput}}"
+               maxlength="253"
+               placeholder="{{.T.UI.DomainPlaceholder}}"
+               class="form-control{{if .ErrorMessage}} is-invalid{{end}}"
+               {{if .ErrorMessage}}aria-invalid="true" aria-describedby="domain-error"{{else}}aria-describedby="domain-help"{{end}}>
+        {{if .ErrorMessage}}
+          <div id="domain-error" class="invalid-feedback d-block" role="alert">{{.ErrorMessage}}</div>
+        {{else}}
+          <div id="domain-help" class="form-text">{{.T.UI.DomainHelp}}</div>
+        {{end}}
+      </div>
+      <div class="col-auto d-flex gap-2">
+        <button type="submit" class="btn btn-primary">{{.T.UI.SubmitBtn}}</button>
+        <a href="/?mode={{.Mode}}" class="btn btn-outline-secondary">{{.T.UI.ResetBtn}}</a>
+      </div>
+    </form>
+  </div>
+</section>
+
+{{if .HasResult}}
+  <div class="alert alert-secondary py-2 small" role="status">
+    {{.T.UI.QuerySummaryPrefix}} <strong>{{.QueriedHost}}</strong>
+    ({{if eq .Mode "doh"}}{{.T.UI.DoHMode}}{{else}}{{.T.UI.DNSMode}}{{end}}, {{.TotalDurationMS}}ms)
+  </div>
+{{end}}
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+  {{range .Cards}}
+    <div class="col">
+      <section class="card h-100" aria-labelledby="server-heading-{{.Index}}">
+        <div class="card-header bg-white">
+          <h2 id="server-heading-{{.Index}}" class="h6 mb-1 fw-semibold">{{.Server.Title}}</h2>
+          <details class="small text-body-secondary">
+            <summary>{{$.T.UI.ServerInfoLabel}}</summary>
+            <div class="mt-2 d-flex flex-column gap-1">
+              <p class="mb-1">{{.Server.Description}}</p>
+              {{if ne .Server.Document "-"}}
+                <p class="mb-1">
+                  <a href="{{.Server.Document}}" target="_blank" rel="noopener noreferrer">{{$.T.UI.DocumentLink}}</a>
+                </p>
+              {{end}}
+              {{if ne .Server.IP "-"}}
+                <p class="mb-0"><strong>{{$.T.UI.DNSLabel}}:</strong> <code class="text-break">{{.Server.IP}}</code></p>
+              {{end}}
+              {{if ne .Server.DoHEndpoint "-"}}
+                <p class="mb-0"><strong>{{$.T.UI.DoHLabel}}:</strong> <code class="text-break">{{.Server.DoHEndpoint}}</code></p>
+              {{end}}
+            </div>
+          </details>
+        </div>
+        <div class="card-body">
+          {{if .Output}}
+            <pre class="mb-0 small font-monospace text-break">{{.Output}}</pre>
+          {{else if $.HasResult}}
+            <p class="mb-0 small text-body-secondary">{{$.T.UI.NoResult}}</p>
+          {{else}}
+            <p class="mb-0 small text-body-secondary">{{$.T.UI.ReadyHint}}</p>
+          {{end}}
+        </div>
+      </section>
+    </div>
+  {{end}}
+</div>
+{{end}}

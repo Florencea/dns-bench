@@ -1,63 +1,44 @@
 # Agent Development Guidelines
 
-Guidelines for AI agents and human contributors working on this repository.
+Architecture and engineering invariants for `dns-bench`.
 
-This project uses standard `npm` with direct **Vite 8**, **Vitest 5**, **ESLint 10** (`typescript-eslint` v8), **Prettier 3**, and **TypeScript 6** without wrapper middleware layers or hidden compiler transforms.
+## Architecture Map
 
-## 1. Architecture Map
+- `cmd/dns-bench/`: Single executable entrypoint with loopback listener fallback, automatic OS browser launch, and graceful shutdown.
+- `internal/config/`: Runtime configuration loading and loopback-only binding validation.
+- `internal/dns/`: Preset DNS/DoH server SSOT (`servers.go`), domain/mode validation (`validate.go`), pure standard-library RFC 1035 UDP/TCP wire codec (`wire.go`), and concurrent IPv4/IPv6 benchmark engine (`resolver.go`).
+- `internal/i18n/`: Compile-time checked `zh-TW` and `en-US` translation catalogs with cookie and `Accept-Language` resolution.
+- `internal/web/`: Full-page server-rendered HTML handlers, strict security headers, loopback `Host` header check, `net/http.CrossOriginProtection`, cross-site query fetch guard, and automated Bootstrap/a11y lint tests.
+- `web/`: Embedded Bootstrap 5.3.9 CSS (`web/static/bootstrap.min.css`), SVG DNS icon (`web/static/dns-icon.svg`), favicon, and HTML5 templates (`web/templates/*.html`).
+- `.agents/rules/`: Domain rules for Bootstrap CSS-only zero-JS UI, Go DNS/network security invariants, and GitHub Actions CI.
 
-| Layer        | Path             | Responsibility                                                |
-| :----------- | :--------------- | :------------------------------------------------------------ |
-| **Main**     | `src/main/`      | Electron app lifecycle, window management, DNS & DoH engine   |
-| **Preload**  | `src/preload/`   | Secure context bridge exposing typed `window.api`             |
-| **Renderer** | `src/renderer/`  | React 19 UI with Adobe React Spectrum & Tailwind CSS v4       |
-| **Shared**   | `src/shared/`    | Cross-process contracts (`ModeT`, `ServerT`) & DNS presets    |
-| **Tests**    | `test/`          | Dual-track testing: Chromium browser (renderer) & Node (main) |
-| **Tooling**  | `scripts/`       | Native Electron dev plugin and packaged CDP smoke test        |
-| **Rules**    | `.agents/rules/` | Domain-specific modular rules activated via file globbing     |
+## Core Invariants
 
----
+- Single Static Binary with Zero External Go Dependencies (`CGO_ENABLED=0`): Use only the Go standard library in `go.mod` and embed frontend assets via `web/embed.go`. Do not introduce Node.js, npm, Electron, CGo, or frontend bundlers.
+- Strict Bootstrap 5 CSS-Only UI and Zero JavaScript: Never add `<script>`, `<style>`, `<iframe>`, `style=`, `on*=` attributes, `javascript:` URIs, `data-bs-*` attributes, or custom CSS files. Only class names present in `web/static/bootstrap.min.css` are permitted, enforced by `internal/web/lint_test.go`.
+- Full-Page Server Rendering and Address-Bar Query URLs: Mode switching (`GET /?mode=dns|doh`) and DNS queries (`GET /?mode=...&host=...`) use standard HTML forms and full-page rendering. Locale switches use `POST /locale` with `303 See Other` redirects.
+- Localhost Security Boundaries: Bind strictly to loopback (`127.0.0.1`, `::1`, or `localhost`), enforce `Host` loopback allowlisting against DNS rebinding (`421 Misdirected Request`), enforce `Sec-Fetch-Site` and `Sec-Fetch-Dest` checks on `GET /?host=...` against cross-site local DNS triggering, enforce `net/http.CrossOriginProtection` on `POST /locale`, and serve `script-src 'none'` with `X-Frame-Options: DENY` on every route.
+- Third-Party Licensing: Preserve `NOTICE` and `THIRD_PARTY_LICENSES/`. Do not add copyleft dependencies.
 
-## 2. Core SSOT & Invariants
+## Verification Commands
 
-- **Direct Proven Toolchain**: Manage dependencies with `npm` (`npm ci`, `npm install`) and invoke Vite, Vitest, ESLint, Prettier, TypeScript (`tsc -b`), and Electron Forge directly through shared `package.json` scripts. Avoid introducing experimental wrapper CLIs, 0.x native compiler transforms (no React Compiler), or redundant tool-specific script wrappers.
-- **Strict `.npmrc`, `allowScripts` & Node Engines**: Keep `audit=false`, `engine-strict=true`, `fund=false`, `ignore-scripts=false`, `install-strategy=linked`, `save-exact=true`, and `strict-peer-deps=true` in `.npmrc`. Rely on npm's default-deny install-script policy governed by `package.json` `allowScripts` (permitting only `fs-xattr` and `macos-alias`), pin the minimum safe `engines.node` floor (`>=22.18.0` for unflagged native `.ts` execution) in `package.json` without fragile patch pins, and let dependency `engines` ranges (enforced by `engine-strict=true`) govern toolchain compatibility. Install Playwright Chromium explicitly via `npm run test:setup`.
-- **Strict TypeScript & Zero Suppression**: Single `typescript` (`6.0.2`) compiler across `tsc -b`, `typescript-eslint`, and VS Code. ESLint enforces `strictTypeChecked`, `stylisticTypeChecked`, `noInlineConfig: true`, `reportUnusedDisableDirectives: "error"`, and `--max-warnings 0`. Never use `// @ts-ignore`, `// @ts-expect-error`, `// @ts-nocheck`, `eslint-disable`, or unsafe `as` assertions. Run `npx knip` on demand for periodic dead-code audits.
-- **Single Source of Truth**:
-  - DNS presets reside strictly in `src/shared/servers.ts`.
-  - Cross-process contracts reside in `src/shared/types.ts`.
-  - Styling tokens reside in `src/renderer/index.css` via Tailwind CSS v4 `@theme`.
-- **Security & Context Isolation**:
-  - Main process never imports browser-only APIs; preload exposes only typed methods via `contextBridge`.
-  - Raw Node.js modules or raw `ipcRenderer` must never be exposed to the renderer.
-- **Domain Rules**: Path-specific rules live under `.agents/rules/` (`ci-workflows`, `electron-main`, `ui-styling`, `testing`).
-- **CI & Actions Invariants**: All GitHub Actions in `.github/workflows/ci.yml` must pin exact SemVer tags and pass `npm run lint:ci`.
+Run the full local gate after changes:
 
----
+```bash
+test -z "$(gofmt -l .)"
+go vet ./...
+CGO_ENABLED=1 go test -race -count=1 ./...
+go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o bin/dns-bench ./cmd/dns-bench
+actionlint
+```
 
-## 3. Shared Verification & Workflow Commands
+## Git Workflow Restrictions
 
-Humans and agents share the same standard `npm run` scripts:
+- Never execute `git commit` directly because local commits rely on interactive SSH signing.
+- Stage changes with `git add` and output the suggested `git commit -m "..."` command in English for the user to execute.
 
-- **Inner Loop**: `npm run typecheck && npm run lint && npm run format:check`
-- **Auto-Fix & Format**: `npm run lint:fix && npm run format`
-- **Unit & Component Tests**: `npm test` (`npm run test:renderer` / `npm run test:main`; append `-- --reporter=tap-flat --no-color` for compact output)
-- **Build & Package**: `npm run build`, `npm run app:pack`, `npm run app:mac`, `npm run app:linux`, `npm run app:win`
-- **Packaged E2E Smoke Test**: `npm run test:e2e` (requires `npm run app:pack` first)
-- **Full Verification Gate**: `npm run verify` (`typecheck` -> `lint` -> `format:check` -> `test` -> `app:pack` -> `test:e2e`)
-- **CI Lint**: `npm run lint:ci` (`actionlint` 0 errors/warnings)
-- **Development Server**: `npm run dev` (Vite 8 + `electronDevPlugin` hot-restart)
+## Language Standards
 
----
-
-## 4. Git Workflow & Commit Restrictions
-
-- **NEVER execute `git commit` directly**: Local environment uses 1Password SSH signing; non-interactive commit fails.
-- **Protocol**: Stage changes with `git add <files>` and output `git commit -m "..."` in English for user to run locally.
-
----
-
-## 5. Language & Planning Standards
-
-- **Traditional Chinese for Plans & Responses**: All plans (`/plan`), walkthroughs, and chat responses must strictly be written in **Traditional Chinese (繁體中文)**.
-- **Code Artifacts**: Source code, inline comments, commit messages, and automated tests must use concise English.
+- Write all dialogue, walkthroughs, and plans in Traditional Chinese (Taiwan usage).
+- Write all source code, comments, templates, tests, standalone documentation, and commit messages in concise English (except localized UI strings in `zh-TW` catalogs).
