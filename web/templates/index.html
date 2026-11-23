@@ -14,28 +14,30 @@
 
 <section aria-label="{{.T.UI.QueryFormLabel}}" class="card mb-4">
   <div class="card-body">
-    <form method="GET" action="/" class="row g-3 align-items-end">
+    <form method="GET" action="/">
       <input type="hidden" name="mode" value="{{.Mode}}">
-      <div class="col-12 col-md-8 col-lg-6">
-        <label for="domain-input" class="form-label">{{.T.UI.DomainLabel}}</label>
-        <input id="domain-input"
-               name="host"
-               type="text"
-               value="{{.HostInput}}"
-               maxlength="253"
-               placeholder="{{.T.UI.DomainPlaceholder}}"
-               class="form-control{{if .ErrorMessage}} is-invalid{{end}}"
-               {{if .ErrorMessage}}aria-invalid="true" aria-describedby="domain-error"{{else}}aria-describedby="domain-help"{{end}}>
-        {{if .ErrorMessage}}
-          <div id="domain-error" class="invalid-feedback d-block" role="alert">{{.ErrorMessage}}</div>
-        {{else}}
-          <div id="domain-help" class="form-text">{{.T.UI.DomainHelp}}</div>
-        {{end}}
+      <label for="domain-input" class="form-label">{{.T.UI.DomainLabel}}</label>
+      <div class="row g-2 align-items-center">
+        <div class="col-12 col-md-8 col-lg-6">
+          <input id="domain-input"
+                 name="host"
+                 type="text"
+                 value="{{.HostInput}}"
+                 maxlength="253"
+                 placeholder="{{.T.UI.DomainPlaceholder}}"
+                 class="form-control{{if .ErrorMessage}} is-invalid{{end}}"
+                 {{if .ErrorMessage}}aria-invalid="true" aria-describedby="domain-error"{{else}}aria-describedby="domain-help"{{end}}>
+        </div>
+        <div class="col-auto d-flex gap-2">
+          <button type="submit" class="btn btn-primary">{{.T.UI.SubmitBtn}}</button>
+          <a href="/?mode={{.Mode}}" class="btn btn-outline-secondary">{{.T.UI.ResetBtn}}</a>
+        </div>
       </div>
-      <div class="col-auto d-flex gap-2">
-        <button type="submit" class="btn btn-primary">{{.T.UI.SubmitBtn}}</button>
-        <a href="/?mode={{.Mode}}" class="btn btn-outline-secondary">{{.T.UI.ResetBtn}}</a>
-      </div>
+      {{if .ErrorMessage}}
+        <div id="domain-error" class="invalid-feedback d-block" role="alert">{{.ErrorMessage}}</div>
+      {{else}}
+        <div id="domain-help" class="form-text">{{.T.UI.DomainHelp}}</div>
+      {{end}}
     </form>
   </div>
 </section>
